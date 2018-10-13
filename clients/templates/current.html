@@ -1,0 +1,224 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="-1">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<head>
+    <style>
+body {
+	background: none;
+}
+
+table.blueTable {
+	background-color: #EEEEEE;
+	text-align: center;
+	border-spacing: 0;
+}
+
+table.blueTable td, table.blueTable th {
+    padding: 3px 2px;
+	height: 140px;
+}
+table.blueTable th:nth-child(1) {
+	width: 250px;
+}
+table.blueTable th:nth-child(2) {
+	width: 250px;
+}
+table.blueTable th:nth-child(3) {
+	width: 100px;
+}
+table.blueTable th:nth-child(4) {
+	width: 100px;
+}
+table.blueTable th:nth-child(5) {
+	width: 100px;
+}
+
+table.blueTable th:nth-child(6) {
+	width: 300px;
+}
+
+table.blueTable tbody td {
+	font-size: 30px;
+	width: 200px;
+}
+
+table.blueTable tbody td:nth-child(4) {
+	font-weight: bold;
+	font-size:30px;
+	color: #FFFFFF;
+	text-align: center;
+	background-color: #5E5C5B;
+}
+
+table.blueTable tbody tr:nth-child(2) td{
+ 	font-weight: bold;
+ 	height:30px;
+ 	font-size: 30px;
+}
+
+table.blueTable tbody tr:nth-child(2) td:nth-child(2) {
+	font-weight: bold;
+	color: #FFFFFF;
+	text-align: center;
+	background-color: #5E5C5B;
+}
+
+table.blueTable thead {
+	background: #5E5C5B;
+	font-size: 40px;
+}
+
+table.blueTable thead th {
+	font-size: 40 px;
+	font-weight: bold;
+	color: #FFFFFF;
+	text-align: center;
+}
+
+table.blueTable p {
+	margin-bottom: 1px;
+	margin-top: 1px;
+	font-weight: bold;
+	text-align:left;
+}
+
+goodbutton {
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 3px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+	border-radius: 12px;
+    font-size: 48px;
+	font-weight: bold;
+}
+
+badbutton {
+    background-color: #f44336; /* Green */
+    border: none;
+    color: white;
+    padding: 3px 32px;
+    text-align: center;
+    text-decoration: none;
+	font-weight: bold;
+    display: inline-block;
+	border-radius: 12px;
+    font-size: 48px;
+}
+
+curbutton {
+    background-color: #FFFFFF; /* Green */
+    border: none;
+    color: #5E5C5B;
+    padding: 3px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+	border-radius: 12px;
+    font-size: 48px;
+	font-weight: bold;
+}
+
+    </style>
+</head>
+<head>
+	<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<script type="text/javascript" charset="utf-8">
+
+  var $SCRIPT_ROOT = '{{url_for('api.lifters', _external=True)}}';
+
+
+function LoadAjax()
+{
+	// Make a request for a user with a given ID
+	axios.get($SCRIPT_ROOT + 'current/')
+		.then(function (response) {
+			// handle success
+			console.log(response);
+			$('#name').text(response.data.name);
+			$('#team').text(response.data.team.short);
+			var i = 0;
+
+			var snatcharray = [response.data.lifts[0],response.data.lifts[1], response.data.lifts[2]];
+			var cjarray = [response.data.lifts[3],response.data.lifts[4], response.data.lifts[5]];
+			maxSnatch = Math.max.apply(Math, snatcharray.map(function(o) { if (o.result == 2) {return o.weight;} else { return 0;} }));
+			maxCJ = Math.max.apply(Math, cjarray.map(function(o) { if (o.result == 2) {return o.weight;} else { return 0;} }));
+			$('#points').text("Punkte: " + (Math.round((maxSnatch + maxCJ)*response.data.sf* 100) / 100).toFixed(2))
+			if (response.data.lifts[0].result != 0 && response.data.lifts[1].result != 0 && response.data.lifts[2].result != 0) {
+				$('#total').text("Total:" + (maxSnatch + maxCJ) + "  kg");
+				$('#snatch').text("Reißen: " + (maxSnatch ) + "   kg");
+				i = 3
+			}
+			else {
+				$('#total').text("");
+				$('#snatch').text("");
+			}
+			var x = 0;
+
+			for (x=i; x < 3+i; x++) {
+				var attempts = " ";
+				if (response.data.lifts[x].result == 2) {
+					attempts += "<goodbutton>" + response.data.lifts[x].weight  +  "</goodbutton>";
+				}
+				else if (response.data.lifts[x].result == 1) {
+					attempts += "<badbutton>" + response.data.lifts[x].weight  +  "</badbutton>";
+				}
+				else if (response.data.lifts[x].result == 0){
+					attempts += "<curbutton>" + response.data.lifts[x].weight  +  "</curbutton>";
+				}
+				$('#attempt' + (x-i)).html(attempts);
+			}
+		})
+		.catch(function (error) {
+			// handle error
+			console.log(error);
+		})
+		.then(function () {
+			// always executed
+	});
+}
+
+
+setInterval(LoadAjax, 5000);
+
+
+</script>
+
+<body>
+    <table class="blueTable">
+        <thead>
+            <th id="name">       </th>
+            <th id="team"></th>
+			<div id="attempts">
+				<th id="attempt0">
+					1
+				</th>
+				<th id="attempt1">
+					1
+				</th>
+				<th id="attempt2">
+					1
+				</th>
+			</div>
+			<th>
+				<p id="total">Total:  kg</p>
+				<p id="snatch">Reißen:  kg</p>
+				<p id="points">Punkte:  </p>
+			</th>
+			<th>
+				(c) by SK VÖEST
+			</th>
+        </thead>
+    </table>
+
+	<ul id="messages"></ul>
+</body>
+</html>
