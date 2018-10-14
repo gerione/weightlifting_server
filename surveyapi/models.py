@@ -3,10 +3,9 @@ models.py
 - Data classes for the surveyapi application
 """
 
-from datetime import datetime
+from surveyapi import database as db
 from flask_sqlalchemy import SQLAlchemy
 
-db = SQLAlchemy()
 
 class Current(db.Model):
     __tablename__ = 'current'
