@@ -49,62 +49,39 @@
 <body>
     <div id="example-table-theme"></div>
 
-
-    <script
-  src="https://code.jquery.com/jquery-3.3.1.js"
-  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
-  crossorigin="anonymous"></script>
-   <script
-  src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
-  integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
-  crossorigin="anonymous"></script>
-
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/3.5.3/css/tabulator.min.css" rel="stylesheet">
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/3.5.3/js/tabulator.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/4.0.1/css/tabulator.min.css" rel="stylesheet">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/4.0.1/js/tabulator.min.js"></script>
 
     <script type="text/javascript">
-			Tabulator.extendExtension("format", "formatters", {
+			Tabulator.prototype.extendModule("format", "formatters", {
 				weightlifting:function(cell, formatterParams){
 					var value = cell.getValue();
 					if(value.result == 2){
-					cell.getElement().css({
-						"background-color": "green"
-						});
+					cell.getElement().style.backgroundColor = "green";
 
 					}
 					else if(value.result == 1){
-					cell.getElement().css({
-						"background-color": "red"
-						});
+					cell.getElement().style.backgroundColor = "red";
 
 					}
 					else{
-					cell.getElement().css({
-						"background-color": "grey"
-						});
+					cell.getElement().style.backgroundColor = "grey";
 
 					}
 					return "<span style='font-weight:bold;'>" + value.weight + "</span>";
 				},
 			});
 
-			Tabulator.extendExtension("mutator", "mutators", {
+			Tabulator.prototype.extendModule("mutator", "mutators", {
                 points:function(value, data, type, mutatorParams){
                     return parseFloat(Math.round(value * 100) / 100).toFixed(2)
                 },
             });
 
-			$("#example-table-theme").tabulator({
+			var table = new Tabulator("#example-table-theme", {
                 ajaxURL:  $SCRIPT_ROOT + "flat/", //ajax URL
-                ajaxConfig:"GET", //ajax HTTP request type
+                ajaxConfig:"POST", //ajax HTTP request type
                 ajaxLoader: false,
-				ajaxResponse:function(url, params, response){
-					//url - the URL of the request
-					//params - the parameters passed with the request
-					//response - the JSON object returned in the body of the response.
-
-					return response; //return the tableData peroperty of a response json object
-				},
                 layout:"fitColumns",
 				groupHeader:function(value, count, data, group){
 					return value + "<span style='color:#d00; margin-left:10px;'>(" + count + " Starter)</span>";
@@ -142,7 +119,7 @@
 
 			function LoadData()
 			{
-				$("#example-table-theme").tabulator("setData");
+				table.setData();
 				setTimeout(LoadData, 5000);
 			}
 

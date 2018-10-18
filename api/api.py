@@ -6,7 +6,7 @@ clients.py
 
 from flask import Blueprint, jsonify, request
 from .models import db, Lifter, Team, Weightclass, Attempt, Current
-
+from sqlalchemy.sql import and_
 
 api = Blueprint('api', __name__)
 
@@ -67,7 +67,7 @@ def create_lifter(data, id=-99):
 
     if weightclass is None:
         weightclass = Weightclass.query.filter(
-            Weightclass.min_weight < lifter.weight).filter(Weightclass.max_weight >= lifter.weight).filter(Weightclass.sex == lifter.sex).first()
+            (Weightclass.min_weight < lifter.weight) & (Weightclass.max_weight >= lifter.weight) & (Weightclass.sex == lifter.sex)).first()
         if weightclass is None:
             weightclass = Weightclass.query.filter_by(name='default').first()
             if weightclass is None:
@@ -189,14 +189,20 @@ def teams():
         return jsonify(team.to_dict()), 201
 
 
-@api.route('/weightclasses/', methods=('GET', 'POST'))
+@api.route('/weightclasses/', methods=('GET', 'POST', 'DELETE'))
 def weightclasses():
-    if request.method == 'GET':
+    if request.method == 'DELETE':
+        weightclasses = Weightclass.query.all()
+        for w in weightclasses:
+            db.session.delete(w)
+        db.session.commit()
+        return jsonify(dict()), 201
+    elif request.method == 'GET':
         weightclasses = Weightclass.query.all()
         return jsonify([w.to_dict() for w in weightclasses])
     elif request.method == 'POST':
         data = request.get_json()
-        weightclass = Weightclass(name=data['name'], min_weight=data['min_weight'], max_weight=data['max_weight'])
+        weightclass = Weightclass(name=data['name'], min_weight=data['min_weight'], max_weight=data['max_weight'], sex=data['sex'])
         db.session.add(weightclass)
         db.session.commit()
 

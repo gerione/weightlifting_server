@@ -1,9 +1,9 @@
 """
 models.py
-- Data classes for the surveyapi application
+- Data classes for the api application
 """
 
-from surveyapi import database as db
+from api import database as db
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -77,7 +77,8 @@ class Weightclass (db.Model):
         return dict(id=self.id,
                     name=self.name,
                     min_weight=self.min_weight,
-                    max_weight=self.max_weight)
+                    max_weight=self.max_weight,
+                    sex=self.sex)
 
 class Attempt(db.Model):
     __tablename__ = 'attempts'
