@@ -6,7 +6,7 @@ clients.py
 
 from flask import Blueprint, jsonify, request
 from .models import db, Lifter, Team, Weightclass, Attempt, Current
-from sqlalchemy.sql import and_
+from sqlalchemy import func
 
 api = Blueprint('api', __name__)
 
@@ -161,14 +161,11 @@ def teams():
             team_snatch = 0
             team_cj = 0
             for lifter in team.lifters:
-                attempts = Attempt.query.filter(Attempt.lifter_id == lifter.id, Attempt.result == 2)
-                max_snatch = 0
-                max_cj = 0
-                for attempt in attempts:
-                    if attempt.attempt < 4 and attempt.weight > max_snatch:
-                        max_snatch = attempt.weight
-                    if attempt.attempt > 3 and attempt.weight > max_cj:
-                        max_cj = attempt.weight
+                max_snatch = db.session.query(func.max(Attempt.weight)).filter(Attempt.lifter_id == lifter.id).filter(
+                    Attempt.attempt < 4).filter(Attempt.result == 2).first()[0]
+                max_cj = db.session.query(func.max(Attempt.weight)).filter(Attempt.lifter_id == lifter.id).filter(
+                    Attempt.attempt > 3).filter(Attempt.result == 2).first()[0]
+
                 team_total = team_total + (max_snatch+max_cj)*lifter.sinclair_factor
                 team_snatch= team_snatch + max_snatch*lifter.sinclair_factor
                 team_cj = team_cj + max_cj*lifter.sinclair_factor
@@ -188,6 +185,26 @@ def teams():
 
         return jsonify(team.to_dict()), 201
 
+
+@api.route('/teams/forecast/', methods=['GET'])
+def teams_forecast():
+    teams = Team.query.all()
+    result = []
+    for team in teams:
+        team_total = 0
+        team_snatch = 0
+        team_cj = 0
+        for lifter in team.lifters:
+            max_snatch = db.session.query(func.max(Attempt.weight)).filter(Attempt.lifter_id == lifter.id).filter(Attempt.attempt < 4).filter((Attempt.result == 0) | (Attempt.result == 2)).first()[0]
+            max_cj = db.session.query(func.max(Attempt.weight)).filter(Attempt.lifter_id == lifter.id).filter(Attempt.attempt > 3).filter((Attempt.result == 0) | (Attempt.result == 2)).first()[0]
+
+            team_total = team_total + (max_snatch+max_cj)*lifter.sinclair_factor
+            team_snatch= team_snatch + max_snatch*lifter.sinclair_factor
+            team_cj = team_cj + max_cj*lifter.sinclair_factor
+
+        team_result = dict(team.to_dict(), total=team_total, snatch=team_snatch, cj=team_cj)
+        result.append(team_result)
+    return jsonify(result)
 
 @api.route('/weightclasses/', methods=('GET', 'POST', 'DELETE'))
 def weightclasses():

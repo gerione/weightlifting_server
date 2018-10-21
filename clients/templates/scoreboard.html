@@ -86,12 +86,14 @@
 				groupHeader:function(value, count, data, group){
 					return value + "<span style='color:#d00; margin-left:10px;'>(" + count + " Starter)</span>";
 				},
+
                 history:false,
-                groupBy:"{{groupby}}",
+                groupBy: "{{groupby}}",
 			    columns:[ //Define Table Columns
 			        {title:"Name", field:"name",align:"center", width:340, headerSort:false},
 					{title:"Team", field:"team.short",align:"center", headerSort:false},
 					{title:"Weightclass", field:"weightclass.name",align:"center", headerSort:false},
+					{title:"Hidden Column", field:"weightclass.id", visible:false, headerSort:false},
 			        {title:"SF", field:"sf", align:"center", headerSort:false},
 			        //{title:"Pkt.", field:"points.total", align:"center", headerSort:false, mutator:"points"},
 			         {//create column group
@@ -115,6 +117,14 @@
 					}
                     //,{title:"Platz", field:"place", align:"center",  headerSort:false},
 			    ],
+			    initialSort:[
+				    {% if groupby=="weightclass.name" %}
+
+                        {column:"weightclass.id", dir:"asc",  sorter:"string"},
+                    {% else %}
+                        {column:"name", dir:"asc",  sorter:"string"},
+                    {% endif %}
+                ],
 			});
 
 			function LoadData()

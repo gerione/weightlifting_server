@@ -19,7 +19,7 @@ def get_scoreboard_team():
 
 @pages.route('/scoreboard/')
 def get_scoreboard():
-    return render_template('scoreboard.html',groupby="weightclass.name"), 200
+    return render_template('scoreboard.html', groupby="weightclass.name"), 200
 
 
 @pages.route('/team/')
