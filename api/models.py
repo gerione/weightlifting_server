@@ -14,14 +14,45 @@ class Current(db.Model):
     lifter_id = db.Column(db.Integer, db.ForeignKey('lifters.id'))
     lifter = db.relationship("Lifter", backref="current")
 
+
+class Competitions (db.Model):
+    __tablename__ = 'competitions'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    location = db.Column(db.String)
+    start_time = db.Column(db.Date)
+    youtube_id = db.Column(db.String)
+
+    def to_dict(self):
+        return dict(id=self.id,
+                    name=self.name,
+                    location=self.location,
+                    youtube_id=self.youtube_id,
+                    start_time=self.start_time)
+
+
+class LifterMaster (db.Model):
+    __tablename__ = 'liftermaster'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    sex = db.Column(db.Boolean)
+
+    def to_dict(self):
+        return dict(id=self.id,
+                    name=self.name,
+                    sex=self.sex)
 class Lifter(db.Model):
     __tablename__ = 'lifters'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
+    lifter_id = db.Column(db.Integer, db.ForeignKey('liftermaster.id'))
+    lifter = db.relationship("LifterMaster", backref="lifters")
+    competition_id = db.Column(db.Integer, db.ForeignKey('competitions.id'))
+
     weight = db.Column(db.Float)
     sinclair_factor = db.Column(db.Float)
-    sex = db.Column(db.Boolean)
 
     team_id = db.Column(db.Integer, db.ForeignKey('teams.id'))
     team = db.relationship("Team", backref="lifters")
@@ -34,16 +65,18 @@ class Lifter(db.Model):
     def to_dict(self):
         if not self.lifts:
             return dict(id=self.id,
-                        name=self.name,
+                        lifter_id=self.lifter.id,
+                        name=self.lifter.name,
                         sf=self.sinclair_factor,
-                        sex=self.sex,
+                        sex=self.lifter.sex,
                         team=self.team.to_dict(),
                         weightclass=self.weightclass.to_dict(), lifts= [])
 
         return dict(id=self.id,
-                    name=self.name,
+                    lifter_id=self.lifter.id,
+                    name=self.lifter.name,
                     sf=self.sinclair_factor,
-                    sex=self.sex,
+                    sex=self.lifter.sex,
                     team=self.team.to_dict(),
                     weightclass=self.weightclass.to_dict(),
                     lifts=[lift.to_dict() for lift in sorted(self.lifts, key=lambda x: x.attempt)])

@@ -3,7 +3,7 @@ appserver.py
 - creates an application instance and runs the dev server
 """
 from api import create_app, database
-from api.models import Team, Lifter, Weightclass, Attempt
+from api.models import Team, Lifter, Weightclass, Attempt, Competitions
 
 
 
@@ -13,6 +13,7 @@ app = create_app()
 @app.shell_context_processor
 def make_shell_context():
     return dict(db= database, app=app,
+                Competitions=Competitions,
                 Lifter=Lifter,
                 Team=Team,
                 Weightclass=Weightclass,

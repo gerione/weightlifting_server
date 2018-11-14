@@ -5,41 +5,21 @@ clients.py
 """
 
 from flask import Blueprint, jsonify, request
-from .models import db, Lifter, Team, Weightclass, Attempt, Current
+from .models import db, Lifter, Team, Weightclass, Attempt, Current, Competitions, LifterMaster
 from sqlalchemy import func
+import datetime
 
 api = Blueprint('api', __name__)
 
-@api.route('/lifters/flat/', methods=('GET', 'POST'))
-def get_flat_lifters():
-    lifters = Lifter.query.all()
-    json_lifters = []
-    for l in lifters:
-        lifter = dict(id=l.id,
-                    name=l.name,
-                    weight=l.weight,
-                    sf=l.sinclair_factor,
-                    sex=l.sex,
-                    team=l.team.to_dict(),
-                    weightclass=l.weightclass.to_dict())
-        i = 1
-        for a in sorted(l.lifts, key=lambda x: x.attempt):
-            att = a.to_dict()
-            lifter['A'+str(i)] = att
-            i = i+1
-
-        while i<=6:
-            lifter['A' + str(i)] = dict(id=i, attempt = i, weight=0,result=0)
-            i = i + 1
-        json_lifters.append(lifter)
-    return jsonify(json_lifters)
 
 
 def create_lifter(data, id=-99):
     if id != -99:
-        lifter = Lifter.query.get(id)
-    if lifter is None:
-        lifter = Lifter(id=data['id'], name=data['name'].strip(), weight=data['weight'], sex=data['sex'])
+        lifter_master = LifterMaster.query.get(id)
+    if lifter_master is None:
+        return -1
+
+    lifter = Lifter(lifter_id = lifter_master.id, weight=data['weight'])
 
     if 'team' in data:
         t = data['team']
@@ -67,7 +47,7 @@ def create_lifter(data, id=-99):
 
     if weightclass is None:
         weightclass = Weightclass.query.filter(
-            (Weightclass.min_weight < lifter.weight) & (Weightclass.max_weight >= lifter.weight) & (Weightclass.sex == lifter.sex)).first()
+            (Weightclass.min_weight < lifter.weight) & (Weightclass.max_weight >= lifter.weight) & (Weightclass.sex == lifter_master.sex)).first()
         if weightclass is None:
             weightclass = Weightclass.query.filter_by(name='default').first()
             if weightclass is None:
@@ -75,53 +55,143 @@ def create_lifter(data, id=-99):
     lifter.weightclass = weightclass
 
     lifter.lifts = []
-    for attempt in data['attempts']:
-        a = Attempt(attempt=attempt['attempt'], weight=attempt['weight'], result=attempt['result'])
-        lifter.lifts.append(a)
+    if "attempts" in data:
+        for attempt in data['attempts']:
+            a = Attempt(attempt=attempt['attempt'], weight=attempt['weight'], result=attempt['result'])
+            lifter.lifts.append(a)
+    else:
+        for i in range(1,7,1):
+            a = Attempt(attempt=i, weight=0, result=0)
+            lifter.lifts.append(a)
     return lifter
-
-@api.route('/lifters/', methods=('GET', 'POST', 'DELETE'))
-def lifters():
-    if request.method == 'DELETE':
-        lifters = Lifter.query.all()
-        for l in lifters:
-            db.session.delete(l)
-        db.session.commit()
-        return jsonify(dict()), 201
-    elif request.method == 'GET':
-        lifters = Lifter.query.all()
-        return jsonify([l.to_dict() for l in lifters]), 201
-    elif request.method == 'POST':
-        lifter_data = request.get_json()
-
-        for data in lifter_data['lifters']:
-            lifter = create_lifter(data)
-            db.session.add(lifter)
-        db.session.commit()
-
-        return jsonify(lifter.to_dict()), 201
 
 
 @api.route('/lifters/<int:id>/', methods=('GET', 'PUT'))
 def lifter(id):
     if request.method == 'GET':
-
-        lifter = Lifter.query.get(id)
+        lifter = LifterMaster.query.get(id)
         return jsonify({'lifter': lifter.to_dict()})
 
     elif request.method == 'PUT':
 
         data = request.get_json()
-        lifter = create_lifter(data,id)
+
+        lifter = LifterMaster.query.get(id)
+        if lifter is None:
+            lifter = LifterMaster(id=id, name=data['name'].strip(), sex=data['sex'])
+        else:
+            lifter.name = data['name'].strip()
+            lifter.sex = data['sex']
         db.session.add(lifter)
         db.session.commit()
 
         return jsonify(lifter.to_dict()), 201
 
 
-@api.route('/lifters/current/', methods=['GET'])
-def get_current():
-    current = Current.query.get(1)
+@api.route('/lifters/', methods=['GET'])
+def get_lifters():
+    return jsonify({'lifters': [lifter.to_dict() for lifter in LifterMaster.query.all()]})
+
+
+@api.route('/competitions/', methods=('GET', 'POST', 'DELETE'))
+def competitions():
+    if request.method == 'DELETE':
+        for competition in Competitions.query.all():
+            db.session.delete(competition)
+        db.session.commit()
+        return jsonify(dict()), 201
+    elif request.method == 'GET':
+        return jsonify([w.to_dict() for w in Competitions.query.all()])
+    elif request.method == 'POST':
+        data = request.get_json()
+        if 'youtube_url' in data:
+            competition = Competitions(name=data['name'], location=data['location'],
+                                      start_time=datetime.datetime.strptime('2018-11-14T18:00', '%Y-%m-%dT%H:%M'),
+                                      youtube_id=data['youtube_url'])
+        else:
+            competition = Competitions(name=data['name'], location=data['location'], start_time=data['start_time'], youtube_id="")
+        db.session.add(competition)
+        db.session.commit()
+        return jsonify(competition.to_dict()), 201
+
+
+@api.route('/competitions/<int:id>/', methods=('GET', 'POST', 'DELETE'))
+def competition(id):
+    if request.method == 'DELETE':
+        competition = Competitions.query.get(id)
+        db.session.delete(competition)
+        db.session.commit()
+
+    elif request.method == 'GET':
+        competition = Competitions.query.get(id)
+        return jsonify({'competition': competition.to_dict()})
+
+    elif request.method == 'PUT':
+        data = request.get_json()
+        if 'youtube_url' in data:
+            competition = Competitions(name=data['name'], location=data['location'], start_time=datetime.datetime.strptime('2018-11-14T18:00', '%Y-%m-%dT%H:%M'), youtube_id=data['youtube_url'])
+        else:
+            competition = Competitions(name=data['name'], location=data['location'], start_time=data['start_time'], youtube_id="")
+        db.session.add(competition)
+        db.session.commit()
+        return jsonify(competition.to_dict()), 201
+
+
+@api.route('/competitions/<int:competition_id>/lifters/', methods=('GET', 'POST', 'DELETE'))
+def lifters(competition_id):
+    if request.method == 'DELETE':
+        lifters = Lifter.query.filter_by(competition_id = competition_id)
+        for l in lifters:
+            db.session.delete(l)
+        db.session.commit()
+        return jsonify(dict()), 201
+    elif request.method == 'GET':
+        lifters = Lifter.query.filter_by(competition_id = competition_id)
+        return jsonify([l.to_dict() for l in lifters]), 201
+    elif request.method == 'POST':
+        if Competitions.query.get(competition_id) is None:
+            return jsonify("Compettiion not existing", 401)
+
+        lifter_data = request.get_json()
+
+        for data in lifter_data['lifters']:
+            lifter = create_lifter(data, data["id"])
+            lifter.competition_id = competition_id
+            db.session.add(lifter)
+        db.session.commit()
+
+        return jsonify(lifter.to_dict()), 201
+
+@api.route('/competitions/<int:competition_id>/lifters/flat/', methods=('GET', 'POST'))
+def get_flat_lifters(competition_id):
+    lifters = Lifter.query.filter_by(competition_id=competition_id)
+    json_lifters = []
+    for l in lifters:
+        lifter = dict(id=l.id,
+                    name=l.lifter.name,
+                    weight=l.weight,
+                    sf=l.sinclair_factor,
+                    sex=l.lifter.sex,
+                    team=l.team.to_dict(),
+                    weightclass=l.weightclass.to_dict())
+        i = 1
+        for a in sorted(l.lifts, key=lambda x: x.attempt):
+            att = a.to_dict()
+            lifter['A'+str(i)] = att
+            i = i+1
+
+        while i<=6:
+            lifter['A' + str(i)] = dict(id=i, attempt = i, weight=0,result=0)
+            i = i + 1
+        json_lifters.append(lifter)
+    return jsonify(json_lifters)
+
+
+
+
+@api.route('/competitions/<int:competition_id>/lifters/current/', methods=['GET'])
+def get_current(competition_id):
+    current = Current.query.filter(Current.lifter.has(competition_id=competition_id)).first()
     if current is None:
         return jsonify(error="Current not existing!"), 404
     elif current.lifter_id is None:
@@ -130,14 +200,16 @@ def get_current():
         return jsonify(current.lifter.to_dict()), 200
 
 
-@api.route('/lifters/current/<int:id>', methods=['PUT'])
-def set_current(id):
+@api.route('/competitions/<int:competition_id>/lifters/<int:id>/current/', methods=['PUT'])
+def set_current(competition_id, id):
     current = Current.query.first()
+    current = Current.query.filter(Current.lifter.has(competition_id=competition_id)).first()
+    if current is None:
+        current = Current()
     lifter = Lifter.query.get(id)
     if lifter is None:
         return jsonify(error="Lifter not existing"), 404
-    if current is None:
-        current = Current(id=1)
+
     current.lifter = lifter
     db.session.add(current)
     db.session.commit()
@@ -224,5 +296,6 @@ def weightclasses():
         db.session.commit()
 
         return jsonify(weightclass.to_dict()), 201
+
 
 
