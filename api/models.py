@@ -21,7 +21,7 @@ class Competitions (db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     location = db.Column(db.String)
-    start_time = db.Column(db.Date)
+    start_time = db.Column(db.DateTime)
     youtube_id = db.Column(db.String)
 
     def to_dict(self):

@@ -106,16 +106,16 @@ def competitions():
         data = request.get_json()
         if 'youtube_url' in data:
             competition = Competitions(name=data['name'], location=data['location'],
-                                      start_time=datetime.datetime.strptime('2018-11-14T18:00', '%Y-%m-%dT%H:%M'),
+                                      start_time=datetime.datetime.strptime(data['start_time'], '%Y-%m-%dT%H:%M'),
                                       youtube_id=data['youtube_url'])
         else:
-            competition = Competitions(name=data['name'], location=data['location'], start_time=data['start_time'], youtube_id="")
+            competition = Competitions(name=data['name'], location=data['location'], start_time=datetime.datetime.strptime(data['start_time'], '%Y-%m-%dT%H:%M'), youtube_id="")
         db.session.add(competition)
         db.session.commit()
         return jsonify(competition.to_dict()), 201
 
 
-@api.route('/competitions/<int:id>/', methods=('GET', 'POST', 'DELETE'))
+@api.route('/competitions/<int:id>/', methods=('GET', 'POST', 'DELETE', 'OPTIONS'))
 def competition(id):
     if request.method == 'DELETE':
         competition = Competitions.query.get(id)
