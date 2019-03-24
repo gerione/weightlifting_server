@@ -256,64 +256,41 @@ def set_current(competition_id, id):
     return jsonify(lifter.to_dict()), 200
 
 
-@api.route('/teams/', methods=('GET', 'POST', 'DELETE'))
-def teams():
-    if request.method == 'DELETE':
-        teams = Team.query.all()
-        for t in teams:
-            db.session.delete(t)
-        db.session.commit()
-        return jsonify(dict()), 201
-    elif request.method == 'GET':
-        teams = Team.query.all()
-        result = []
-        for team in teams:
-            team_total = 0
-            team_snatch = 0
-            team_cj = 0
-            for lifter in team.lifters:
-                max_snatch = db.session.query(func.max(Attempt.weight)).filter(Attempt.lifter_id == lifter.id).filter(
-                    Attempt.attempt < 4).filter(Attempt.result == 2).first()[0]
-                max_cj = db.session.query(func.max(Attempt.weight)).filter(Attempt.lifter_id == lifter.id).filter(
-                    Attempt.attempt > 3).filter(Attempt.result == 2).first()[0]
+@api.route('/competitions/<int:competition_id>/teams/', methods=['GET'])
+def teams_forecast(competition_id):
 
-                team_total = team_total + (max_snatch+max_cj)*lifter.sinclair_factor
-                team_snatch= team_snatch + max_snatch*lifter.sinclair_factor
-                team_cj = team_cj + max_cj*lifter.sinclair_factor
-
-            team_result = dict(team.to_dict(), total=team_total, snatch=team_snatch, cj=team_cj)
-            result.append(team_result)
-        return jsonify(result)
-    elif request.method == 'POST':
-        data = request.get_json()
-        for team_data in data['teams']:
-            team = Team.query.get(team_data['id'])
-            if team is None:
-                team = Team(id=team_data['id'], name=team_data['name'], short=team_data['short'])
-
-            db.session.add(team)
-        db.session.commit()
-
-        return jsonify(team.to_dict()), 201
-
-
-@api.route('/teams/forecast/', methods=['GET'])
-def teams_forecast():
-    teams = Team.query.all()
+    lifters = Lifter.query.join(Team).filter(Lifter.competition_id==competition_id)
+    teams = Team.query.join(Lifter).filter(Lifter.competition_id == competition_id).all()
     result = []
     for team in teams:
         team_total = 0
         team_snatch = 0
         team_cj = 0
+
+        team_total_forecast = 0
+        team_snatch_forecast = 0
+        team_cj_forecast = 0
         for lifter in team.lifters:
-            max_snatch = db.session.query(func.max(Attempt.weight)).filter(Attempt.lifter_id == lifter.id).filter(Attempt.attempt < 4).filter((Attempt.result == 0) | (Attempt.result == 2)).first()[0]
-            max_cj = db.session.query(func.max(Attempt.weight)).filter(Attempt.lifter_id == lifter.id).filter(Attempt.attempt > 3).filter((Attempt.result == 0) | (Attempt.result == 2)).first()[0]
+            max_snatch = db.session.query(func.max(Attempt.weight)).filter(Attempt.lifter_id == lifter.id).filter(
+                Attempt.attempt < 4).filter(Attempt.result == 2).first()[0]
+            max_cj = db.session.query(func.max(Attempt.weight)).filter(Attempt.lifter_id == lifter.id).filter(
+                Attempt.attempt > 3).filter(Attempt.result == 2).first()[0]
+            if max_snatch == None:
+                max_snatch = 0
+            if max_cj == None:
+                max_cj = 0
+            team_total = team_total + (max_snatch + max_cj) * lifter.sinclair_factor
+            team_snatch = team_snatch + max_snatch * lifter.sinclair_factor
+            team_cj = team_cj + max_cj * lifter.sinclair_factor
 
-            team_total = team_total + (max_snatch+max_cj)*lifter.sinclair_factor
-            team_snatch= team_snatch + max_snatch*lifter.sinclair_factor
-            team_cj = team_cj + max_cj*lifter.sinclair_factor
+            max_snatch_forecast = db.session.query(func.max(Attempt.weight)).filter(Attempt.lifter_id == lifter.id).filter(Attempt.attempt < 4).filter((Attempt.result == 0) | (Attempt.result == 2)).first()[0]
+            max_cj_forecast = db.session.query(func.max(Attempt.weight)).filter(Attempt.lifter_id == lifter.id).filter(Attempt.attempt > 3).filter((Attempt.result == 0) | (Attempt.result == 2)).first()[0]
 
-        team_result = dict(team.to_dict(), total=team_total, snatch=team_snatch, cj=team_cj)
+            team_total_forecast = team_total_forecast + (max_snatch_forecast+max_cj_forecast)*lifter.sinclair_factor
+            team_snatch_forecast= team_snatch_forecast + max_snatch_forecast*lifter.sinclair_factor
+            team_cj_forecast = team_cj_forecast + max_cj_forecast*lifter.sinclair_factor
+
+        team_result = dict(team.to_dict(), total_forecast=team_total_forecast, snatch_forecast=team_snatch_forecast, cj_forecast=team_cj_forecast, total=team_total, snatch=team_snatch, cj=team_cj)
         result.append(team_result)
     return jsonify(result)
 
