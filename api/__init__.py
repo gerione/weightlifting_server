@@ -24,9 +24,6 @@ def create_app(app_name='AUSTRIAN_WEIGHTLIFTING_OVERLAY_API'):
     from api.api import api
     app.register_blueprint(api, url_prefix="/api")
 
-    from clients.clients import pages
-    app.register_blueprint(pages, url_prefix="/pages")
-
     from api.models import db
     db.init_app(app)
 
