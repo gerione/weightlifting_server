@@ -12,9 +12,7 @@ import datetime
 api = Blueprint('api', __name__)
 
 
-
 def find_or_create_lifter(data, id, competition_id):
-
     lifter_master = LifterMaster.query.get(id)
     if lifter_master is None:
         return -1
@@ -160,7 +158,20 @@ def lifters(competition_id):
         return jsonify(dict()), 201
     elif request.method == 'GET':
         lifters = Lifter.query.filter_by(competition_id = competition_id)
-        return jsonify([l.to_dict() for l in lifters]), 201
+        result = []
+        for lifter in lifters:
+            max_snatch = db.session.query(func.max(Attempt.weight)).filter(Attempt.lifter_id == lifter.id).filter(
+                Attempt.attempt < 4).filter(Attempt.result == 2).first()[0]
+            max_cj = db.session.query(func.max(Attempt.weight)).filter(Attempt.lifter_id == lifter.id).filter(
+                Attempt.attempt > 3).filter(Attempt.result == 2).first()[0]
+            
+            lifterdata = lifter.to_dict()
+            lifterdata.update({'snatch_points': max_snatch*lifter.sinclair_factor})
+            lifterdata.update({'cj_points': max_cj * lifter.sinclair_factor})
+            lifterdata.update({'total_points': (max_snatch+max_cj) * lifter.sinclair_factor})
+            result.append(lifterdata)
+
+        return jsonify(result), 201
     elif request.method == 'POST':
         if Competitions.query.get(competition_id) is None:
             return jsonify("Compettiion not existing", 401)
@@ -169,6 +180,17 @@ def lifters(competition_id):
 
         for data in lifter_data['lifters']:
             lifter = find_or_create_lifter(data, data["id"], competition_id)
+            if lifter == -1:
+                return jsonify(
+                    {
+                        "errors": [
+                            {
+                                "status": 401,
+                                "detail": "Master data of user with ID " + str(id) + " does not exist"
+                            }
+                        ]
+                    }
+                ), 401
             lifter.competition_id = competition_id
             db.session.add(lifter)
         db.session.commit()
@@ -201,6 +223,7 @@ def lifters_update(competition_id,lifter_id):
 
         return jsonify(lifter.to_dict()), 201
 
+
 @api.route('/competitions/<int:competition_id>/lifters/flat/', methods=('GET', 'POST'))
 def get_flat_lifters(competition_id):
     lifters = Lifter.query.filter_by(competition_id=competition_id)
@@ -219,17 +242,16 @@ def get_flat_lifters(competition_id):
             lifter['A'+str(i)] = att
             i = i+1
 
-        while i<=6:
+        while i <= 6:
             lifter['A' + str(i)] = dict(id=i, attempt = i, weight=0,result=0)
             i = i + 1
         json_lifters.append(lifter)
     return jsonify(json_lifters)
 
 
-
-
 @api.route('/competitions/<int:competition_id>/lifters/current/', methods=['GET'])
 def get_current(competition_id):
+
     current = Current.query.filter(Current.lifter.has(competition_id=competition_id)).first()
     if current is None:
         return jsonify(error="Current not existing!"), 401
@@ -241,7 +263,7 @@ def get_current(competition_id):
 
 @api.route('/competitions/<int:competition_id>/lifters/<int:id>/current/', methods=['PUT'])
 def set_current(competition_id, id):
-    current = Current.query.first()
+
     current = Current.query.filter(Current.lifter.has(competition_id=competition_id)).first()
     if current is None:
         current = Current()
@@ -259,7 +281,6 @@ def set_current(competition_id, id):
 @api.route('/competitions/<int:competition_id>/teams/', methods=['GET'])
 def teams_forecast(competition_id):
 
-    lifters = Lifter.query.join(Team).filter(Lifter.competition_id==competition_id)
     teams = Team.query.join(Lifter).filter(Lifter.competition_id == competition_id).all()
     result = []
     for team in teams:
