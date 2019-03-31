@@ -164,8 +164,10 @@ def lifters(competition_id):
                 Attempt.attempt < 4).filter(Attempt.result == 2).first()[0]
             max_cj = db.session.query(func.max(Attempt.weight)).filter(Attempt.lifter_id == lifter.id).filter(
                 Attempt.attempt > 3).filter(Attempt.result == 2).first()[0]
-            
+
             lifterdata = lifter.to_dict()
+            lifterdata.update({'max_snatch': max_snatch})
+            lifterdata.update({'max_cj': max_cj })
             lifterdata.update({'snatch_points': max_snatch*lifter.sinclair_factor})
             lifterdata.update({'cj_points': max_cj * lifter.sinclair_factor})
             lifterdata.update({'total_points': (max_snatch+max_cj) * lifter.sinclair_factor})
