@@ -329,6 +329,30 @@ def teams_forecast(competition_id):
         result.append(team_result)
     return jsonify(result)
 
+
+
+@api.route('/teams/', methods=( 'POST', 'DELETE'))
+def teams():
+    if request.method == 'DELETE':
+        teams = Team.query.all()
+        for t in teams:
+            db.session.delete(t)
+        db.session.commit()
+        return jsonify(dict()), 201
+    elif request.method == 'POST':
+        data = request.get_json()
+        for team_data in data['teams']:
+            team = Team.query.get(team_data['id'])
+            if team is None:
+                team = Team(id=team_data['id'], name=team_data['name'], short=team_data['short'])
+
+            db.session.add(team)
+        db.session.commit()
+
+        return jsonify(team.to_dict()), 201
+
+
+
 @api.route('/weightclasses/', methods=('GET', 'POST', 'DELETE'))
 def weightclasses():
     if request.method == 'DELETE':
