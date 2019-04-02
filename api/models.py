@@ -30,7 +30,7 @@ class Competitions (db.Model):
                     name=self.name,
                     location=self.location,
                     youtube_id=self.youtube_id,
-                    start_time=self.start_time,
+                    start_time=str(self.start_time),
                     type=self.type)
 
 

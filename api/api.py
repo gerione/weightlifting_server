@@ -115,12 +115,17 @@ def competitions():
         return jsonify([w.to_dict() for w in Competitions.query.all()])
     elif request.method == 'POST':
         data = request.get_json()
-        if 'youtube_url' in data:
-            competition = Competitions(name=data['name'], location=data['location'],
-                                      start_time=datetime.datetime.strptime(data['start_time'], '%Y-%m-%dT%H:%M'),
-                                      youtube_id=data['youtube_url'])
+        if 'type' in data:
+            type = data['name']
         else:
-            competition = Competitions(name=data['name'], location=data['location'], start_time=datetime.datetime.strptime(data['start_time'], '%Y-%m-%dT%H:%M'), youtube_id="")
+            type = 'single'
+        if 'youtube_url' in data:
+            youtube_url = data['youtube_url']
+        else:
+            youtube_url = ""
+
+        competition = Competitions(name=data['name'], location=data['location'],
+                                   start_time=datetime.datetime.strptime(data['start_time'], '%Y-%m-%dT%H:%M'), youtube_id=youtube_url, type=type)
         db.session.add(competition)
         db.session.commit()
         return jsonify(competition.to_dict()), 201
