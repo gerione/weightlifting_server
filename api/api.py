@@ -139,10 +139,16 @@ def competition(id):
 
     elif request.method == 'PUT':
         data = request.get_json()
-        if 'youtube_url' in data:
-            competition = Competitions(name=data['name'], location=data['location'], start_time=datetime.datetime.strptime('2018-11-14T18:00', '%Y-%m-%dT%H:%M'), youtube_id=data['youtube_url'])
+        if 'type' in data:
+            type = data['name']
         else:
-            competition = Competitions(name=data['name'], location=data['location'], start_time=data['start_time'], youtube_id="")
+            type = 'single'
+        if 'youtube_url' in data:
+            youtube_url = data['youtube_url']
+        else:
+            youtube_url = ""
+
+        competition = Competitions(name=data['name'], location=data['location'], start_time=datetime.datetime.strptime(data['start_time'], '%Y-%m-%dT%H:%M'), youtube_id=youtube_url)
         db.session.add(competition)
         db.session.commit()
         return jsonify(competition.to_dict()), 201

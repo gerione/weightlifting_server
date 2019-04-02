@@ -23,13 +23,15 @@ class Competitions (db.Model):
     location = db.Column(db.String)
     start_time = db.Column(db.DateTime)
     youtube_id = db.Column(db.String)
+    type = db.Column(db.String)
 
     def to_dict(self):
         return dict(id=self.id,
                     name=self.name,
                     location=self.location,
                     youtube_id=self.youtube_id,
-                    start_time=self.start_time)
+                    start_time=self.start_time,
+                    type=self.type)
 
 
 class LifterMaster (db.Model):
