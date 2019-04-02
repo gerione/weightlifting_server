@@ -116,7 +116,7 @@ def competitions():
     elif request.method == 'POST':
         data = request.get_json()
         if 'type' in data:
-            type = data['name']
+            type = data['type']
         else:
             type = 'single'
         if 'youtube_url' in data:
@@ -145,7 +145,7 @@ def competition(id):
     elif request.method == 'PUT':
         data = request.get_json()
         if 'type' in data:
-            type = data['name']
+            type = data['type']
         else:
             type = 'single'
         if 'youtube_url' in data:
