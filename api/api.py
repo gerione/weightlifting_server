@@ -148,7 +148,8 @@ def competition(id):
         else:
             youtube_url = ""
 
-        competition = Competitions(name=data['name'], location=data['location'], start_time=datetime.datetime.strptime(data['start_time'], '%Y-%m-%dT%H:%M'), youtube_id=youtube_url)
+        competition = Competitions(name=data['name'], location=data['location'],
+                                   start_time=datetime.datetime.strptime(data['start_time'], '%Y-%m-%dT%H:%M'), youtube_id=youtube_url, type=type)
         db.session.add(competition)
         db.session.commit()
         return jsonify(competition.to_dict()), 201
