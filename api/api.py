@@ -105,6 +105,7 @@ def get_lifters():
 
 
 @api.route('/competitions/', methods=('GET', 'POST', 'DELETE'))
+@api.cross_origin(methods=['GET', 'POST', 'DELETE'])
 def competitions():
     if request.method == 'DELETE':
         for competition in Competitions.query.all():
