@@ -140,7 +140,7 @@ def competition(id):
         competition = Competitions.query.get(id)
         db.session.delete(competition)
         db.session.commit()
-
+        return jsonify({'deleted': id}), 201
     elif request.method == 'GET':
         competition = Competitions.query.get(id)
         return jsonify({'competition': competition.to_dict()})
