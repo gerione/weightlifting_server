@@ -177,6 +177,11 @@ def lifters(competition_id):
             max_cj = db.session.query(func.max(Attempt.weight)).filter(Attempt.lifter_id == lifter.id).filter(
                 Attempt.attempt > 3).filter(Attempt.result == 2).first()[0]
 
+            if max_snatch is None:
+                max_snatch = 0
+            if max_cj is None:
+                max_cj = 0
+
             lifterdata = lifter.to_dict()
             lifterdata.update({'max_snatch': max_snatch})
             lifterdata.update({'max_cj': max_cj })
