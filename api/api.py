@@ -160,12 +160,12 @@ def competition(id):
         else:
             youtube_url = ""
         competition = Competitions.query.get(id)
-        competition['name']=data['name']
-        competition['location']=data['location']
-        competition['start_time']=datetime.datetime.strptime(data['start_time'], '%Y-%m-%dT%H:%M')
-        competition['youtube_id']=youtube_url
-        competition['type']=type
-        
+        competition.name=data['name']
+        competition.location=data['location']
+        competition.start_time=datetime.datetime.strptime(data['start_time'], '%Y-%m-%dT%H:%M')
+        competition.youtube_id=youtube_url
+        competition.type=type
+
         db.session.commit()
         return jsonify(competition.to_dict()), 201
 
