@@ -133,7 +133,7 @@ def competitions():
         return jsonify(competition.to_dict()), 201
 
 
-@api.route('/competitions/<int:id>/', methods=('GET', 'POST', 'DELETE', 'OPTIONS'))
+@api.route('/competitions/<int:id>/', methods=('GET', 'PUT', 'DELETE', 'OPTIONS'))
 @cross_origin()
 def competition(id):
     if request.method == 'DELETE':
@@ -159,10 +159,13 @@ def competition(id):
             youtube_url = data['youtube_url']
         else:
             youtube_url = ""
-
-        competition = Competitions(name=data['name'], location=data['location'],
-                                   start_time=datetime.datetime.strptime(data['start_time'], '%Y-%m-%dT%H:%M'), youtube_id=youtube_url, type=type)
-        db.session.add(competition)
+        competition = Competitions.query.get(id)
+        competition['name']=data['name']
+        competition['location']=data['location']
+        competition['start_time']=datetime.datetime.strptime(data['start_time'], '%Y-%m-%dT%H:%M')
+        competition['youtube_id']=youtube_url
+        competition['type']=type
+        
         db.session.commit()
         return jsonify(competition.to_dict()), 201
 
