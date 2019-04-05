@@ -137,6 +137,10 @@ def competitions():
 @cross_origin()
 def competition(id):
     if request.method == 'DELETE':
+        lifters = Lifter.query.filter_by(competition_id = id)
+        for l in lifters:
+            db.session.delete(l)
+        db.session.commit()
         competition = Competitions.query.get(id)
         db.session.delete(competition)
         db.session.commit()
