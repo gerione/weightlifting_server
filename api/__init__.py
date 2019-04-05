@@ -19,7 +19,7 @@ def create_app(app_name='AUSTRIAN_WEIGHTLIFTING_OVERLAY_API'):
     database.init_app(app)
     migrate.init_app(app, database)
 
-    cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+    cors = CORS(app)
 
     from api.api import api
     app.register_blueprint(api, url_prefix="/api")
