@@ -5,6 +5,8 @@ clients.py
 """
 
 from flask import Blueprint, jsonify, request
+from flask_cors import cross_origin
+
 from .models import db, Lifter, Team, Weightclass, Attempt, Current, Competitions, LifterMaster
 from sqlalchemy import func
 import datetime
@@ -132,6 +134,7 @@ def competitions():
 
 
 @api.route('/competitions/<int:id>/', methods=('GET', 'POST', 'DELETE', 'OPTIONS'))
+@cross_origin()
 def competition(id):
     if request.method == 'DELETE':
         competition = Competitions.query.get(id)
