@@ -17,7 +17,9 @@ api = Blueprint('api', __name__)
 def find_or_create_lifter(data, id, competition_id):
     lifter_master = LifterMaster.query.get(id)
     if lifter_master is None:
-        return -1
+        lifter_master = LifterMaster(id=id, name=data['name'].strip(), sex=data['sex'])
+        db.session.add(lifter_master)
+        db.session.commit()
 
     lifter = Lifter.query.filter_by(lifter_id=id, competition_id=competition_id).first()
     if lifter is None:
@@ -25,7 +27,7 @@ def find_or_create_lifter(data, id, competition_id):
 
     if 'team' in data:
         t = data['team']
-        team = Team.query.get(t['id'])
+        team = Team.query.filter_by(name=t['name']).first()
 
         if team is None:
             team = Team.query.filter_by(name='default').first()
@@ -206,8 +208,9 @@ def lifters(competition_id):
             return jsonify("Compettiion not existing", 401)
 
         lifter_data = request.get_json()
-
+        all_lifters = []
         for data in lifter_data['lifters']:
+
             lifter = find_or_create_lifter(data, data["id"], competition_id)
             if lifter == -1:
                 return jsonify(
@@ -221,17 +224,19 @@ def lifters(competition_id):
                     }
                 ), 401
             lifter.competition_id = competition_id
-            db.session.add(lifter)
+            all_lifters.append(lifter)
+
+        db.session.add_all(all_lifters)
         db.session.commit()
 
-        return jsonify(lifter.to_dict()), 201
+        return jsonify({'lifters': [lifter.to_dict() for lifter in all_lifters]}), 201
 
 
 @api.route('/competitions/<int:competition_id>/lifters/<int:lifter_id>/', methods=('PUT', 'DELETE'))
 def lifters_update(competition_id,lifter_id):
     if request.method == 'PUT':
         if Competitions.query.get(competition_id) is None:
-            return jsonify("Compettiion not existing", 401)
+            return jsonify("Competition not existing", 401)
 
         data = request.get_json()
         lifter = find_or_create_lifter(data, data["id"], competition_id)
@@ -241,7 +246,7 @@ def lifters_update(competition_id,lifter_id):
                     "errors": [
                         {
                             "status": 401,
-                            "detail": "Master data of user with ID " + str(id) + " does not exist"
+                            "detail": "Master data of user with ID " + str(lifter_id) + " does not exist"
                         }
                     ]
                 }
@@ -251,31 +256,6 @@ def lifters_update(competition_id,lifter_id):
         db.session.commit()
 
         return jsonify(lifter.to_dict()), 201
-
-
-@api.route('/competitions/<int:competition_id>/lifters/flat/', methods=('GET', 'POST'))
-def get_flat_lifters(competition_id):
-    lifters = Lifter.query.filter_by(competition_id=competition_id)
-    json_lifters = []
-    for l in lifters:
-        lifter = dict(id=l.id,
-                    name=l.lifter.name,
-                    weight=l.weight,
-                    sf=l.sinclair_factor,
-                    sex=l.lifter.sex,
-                    team=l.team.to_dict(),
-                    weightclass=l.weightclass.to_dict())
-        i = 1
-        for a in sorted(l.lifts, key=lambda x: x.attempt):
-            att = a.to_dict()
-            lifter['A'+str(i)] = att
-            i = i+1
-
-        while i <= 6:
-            lifter['A' + str(i)] = dict(id=i, attempt = i, weight=0,result=0)
-            i = i + 1
-        json_lifters.append(lifter)
-    return jsonify(json_lifters)
 
 
 @api.route('/competitions/<int:competition_id>/lifters/current/', methods=['GET'])
@@ -357,9 +337,9 @@ def teams():
     elif request.method == 'POST':
         data = request.get_json()
         for team_data in data['teams']:
-            team = Team.query.get(team_data['id'])
+            team = Team.query.filter_by(name=team_data['name']).first()
             if team is None:
-                team = Team(id=team_data['id'], name=team_data['name'], short=team_data['short'])
+                team = Team(name=team_data['name'], short=team_data['short'])
 
             db.session.add(team)
         db.session.commit()

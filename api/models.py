@@ -37,14 +37,36 @@ class Competitions (db.Model):
 class LifterMaster (db.Model):
     __tablename__ = 'liftermaster'
 
+    # Austrian ID of the lifter
     id = db.Column(db.Integer, primary_key=True)
+
+    # Full name of the lifter
     name = db.Column(db.String)
+
+    # Sex: True=Female, False=Male
     sex = db.Column(db.Boolean)
+
+    # Year of birth (important of U and Masters lifters)
+    year = db.Column(db.Integer, default=1900)
+
+    #Name of club for single competition
+    club_single = db.Column(db.String, default="")
+    club_single_short = db.Column(db.String, default="")
+
+    # Name of club for single competition
+    club_team = db.Column(db.String, default="")
+    club_team_short = db.Column(db.String, default="")
 
     def to_dict(self):
         return dict(id=self.id,
                     name=self.name,
-                    sex=self.sex)
+                    sex=self.sex,
+                    year=self.year,
+                    club_single=self.club_single,
+                    club_single_short=self.club_single_short,
+                    club_team=self.club_team,
+                    club_team_short=self.club_team_short)
+
 class Lifter(db.Model):
     __tablename__ = 'lifters'
 
@@ -72,6 +94,7 @@ class Lifter(db.Model):
                         sf=self.sinclair_factor,
                         sex=self.lifter.sex,
                         team=self.team.to_dict(),
+                        masterdata=self.lifter.to_dict(),
                         weightclass=self.weightclass.to_dict(), lifts= [])
 
         return dict(id=self.id,
@@ -81,6 +104,7 @@ class Lifter(db.Model):
                     sex=self.lifter.sex,
                     team=self.team.to_dict(),
                     weightclass=self.weightclass.to_dict(),
+                    masterdata=self.lifter.to_dict(),
                     lifts=[lift.to_dict() for lift in sorted(self.lifts, key=lambda x: x.attempt)])
 
 
