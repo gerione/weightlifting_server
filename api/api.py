@@ -9,13 +9,15 @@ from flask_cors import cross_origin
 
 from .models import db, Lifter, Team, Weightclass, Attempt, Current, Competitions, LifterMaster
 from sqlalchemy import func
+import sqlalchemy
 import datetime
+from sqlalchemy.sql.expression import cast
 
 api = Blueprint('api', __name__)
 
 
 def find_or_create_lifter(data, id, competition_id):
-    lifter_master = LifterMaster.query.get(id)
+    lifter_master = LifterMaster.query.get(sqlalchemy.cast(id, sqlalchemy.String))
     if lifter_master is None:
         lifter_master = LifterMaster(id=id, name=data['name'].strip(), sex=data['sex'])
         db.session.add(lifter_master)
