@@ -17,13 +17,13 @@ api = Blueprint('api', __name__)
 
 
 def find_or_create_lifter(data, id, competition_id):
-    lifter_master = LifterMaster.query.filter_by(id =sqlalchemy.cast(id, sqlalchemy.String)).first()
+    lifter_master = LifterMaster.query.filter_by(id =cast(id, sqlalchemy.String)).first()
     if lifter_master is None:
         lifter_master = LifterMaster(id=id, name=data['name'].strip(), sex=data['sex'])
         db.session.add(lifter_master)
         db.session.commit()
 
-    lifter = Lifter.query.filter_by(lifter_id=id, competition_id=competition_id).first()
+    lifter = Lifter.query.filter_by(lifter_id=cast(id, sqlalchemy.String), competition_id=competition_id).first()
     if lifter is None:
         lifter = Lifter(lifter_id = lifter_master.id, weight=data['weight'])
 
