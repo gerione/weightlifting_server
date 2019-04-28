@@ -144,7 +144,7 @@ class Attempt(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    lifter_id = db.Column(db.String, db.ForeignKey('lifters.id'))
+    lifter_id = db.Column(db.Integer, db.ForeignKey('lifters.id'))
 
     weight = db.Column(db.Float)
     attempt = db.Column(db.Integer)
