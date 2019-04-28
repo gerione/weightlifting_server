@@ -11,7 +11,7 @@ class Current(db.Model):
     __tablename__ = 'current'
 
     id = db.Column(db.Integer, primary_key=True)
-    lifter_id = db.Column(db.String, db.ForeignKey('lifters.id'))
+    lifter_id = db.Column(db.Integer, db.ForeignKey('lifters.id'))
     lifter = db.relationship("Lifter", backref="current")
 
 
