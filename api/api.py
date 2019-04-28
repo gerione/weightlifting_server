@@ -293,7 +293,7 @@ def get_current(competition_id):
         return jsonify(current.lifter.to_dict()), 200
 
 
-@api.route('/competitions/<int:competition_id>/lifters/<int:id>/current/', methods=['PUT'])
+@api.route('/competitions/<int:competition_id>/lifters/<string:id>/current/', methods=['PUT'])
 def set_current(competition_id, id):
 
     current = Current.query.filter(Current.lifter.has(competition_id=competition_id)).first()
