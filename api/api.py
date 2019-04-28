@@ -103,9 +103,30 @@ def lifter(id):
         return jsonify(lifter.to_dict()), 201
 
 
-@api.route('/lifters/', methods=['GET'])
+@api.route('/lifters/', methods=('GET', 'POST'))
 def get_lifters():
-    return jsonify({'lifters': [lifter.to_dict() for lifter in LifterMaster.query.all()]})
+    if request.method == 'GET':
+        return jsonify({'lifters': [lifter.to_dict() for lifter in LifterMaster.query.all()]})
+    elif request.method == 'POST':
+        data_lifters = request.get_json()
+        for data in data_lifters["lifters"]:
+            lifter = LifterMaster.query.get(data['id'])
+            if lifter is None:
+                lifter = LifterMaster(id=data['id'], name=data['name'].strip(), sex=data['sex'],year=data['year'],
+                    club_single=data['club_single'], club_single_short=data['club_single_short'],
+                    club_team=data['club_team'], club_team_short=data['club_team_short'])
+            else:
+                lifter.name = data['name'].strip()
+                lifter.sex = data['sex']
+                lifter.year = data['year']
+                lifter.club_single = data['club_single']
+                lifter.club_single_short = data['club_single_short']
+                lifter.club_team = data['club_team']
+                lifter.club_team_short = data['club_team_short']
+            db.session.add(lifter)
+
+        db.session.commit()
+        return "Lifters created", 201
 
 
 @api.route('/competitions/', methods=('GET', 'POST', 'DELETE'))

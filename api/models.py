@@ -11,7 +11,7 @@ class Current(db.Model):
     __tablename__ = 'current'
 
     id = db.Column(db.Integer, primary_key=True)
-    lifter_id = db.Column(db.Integer, db.ForeignKey('lifters.id'))
+    lifter_id = db.Column(db.String, db.ForeignKey('lifters.id'))
     lifter = db.relationship("Lifter", backref="current")
 
 
@@ -38,7 +38,7 @@ class LifterMaster (db.Model):
     __tablename__ = 'liftermaster'
 
     # Austrian ID of the lifter
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String, primary_key=True)
 
     # Full name of the lifter
     name = db.Column(db.String)
@@ -71,7 +71,7 @@ class Lifter(db.Model):
     __tablename__ = 'lifters'
 
     id = db.Column(db.Integer, primary_key=True)
-    lifter_id = db.Column(db.Integer, db.ForeignKey('liftermaster.id'))
+    lifter_id = db.Column(db.String, db.ForeignKey('liftermaster.id'))
     lifter = db.relationship("LifterMaster", backref="lifters")
     competition_id = db.Column(db.Integer, db.ForeignKey('competitions.id'))
 
