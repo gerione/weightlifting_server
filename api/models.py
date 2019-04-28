@@ -13,7 +13,7 @@ class Current(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     lifter_id = db.Column(db.Integer, db.ForeignKey('lifters.id'))
     lifter = db.relationship("Lifter", backref="current")
-
+    test = db.Column(db.Integer, default=0)
 
 class Competitions (db.Model):
     __tablename__ = 'competitions'
@@ -32,7 +32,7 @@ class Competitions (db.Model):
                     youtube_id=self.youtube_id,
                     start_time=str(self.start_time),
                     type=self.type)
- 
+
 
 class LifterMaster (db.Model):
     __tablename__ = 'liftermaster'
