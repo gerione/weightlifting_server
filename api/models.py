@@ -32,7 +32,7 @@ class Competitions (db.Model):
                     youtube_id=self.youtube_id,
                     start_time=str(self.start_time),
                     type=self.type)
-
+ 
 
 class LifterMaster (db.Model):
     __tablename__ = 'liftermaster'
