@@ -60,15 +60,19 @@ def find_or_create_lifter(data, id, competition_id):
                 weightclass = Weightclass(name='default', min_weight=0, max_weight=9999)
     lifter.weightclass = weightclass
 
-    lifter.lifts = []
-    if "attempts" in data:
-        for attempt in data['attempts']:
-            a = Attempt(attempt=attempt['attempt'], weight=attempt['weight'], result=attempt['result'])
-            lifter.lifts.append(a)
-    else:
+    if lifter.lifts == []:
         for i in range(1,7,1):
             a = Attempt(attempt=i, weight=0, result=0)
             lifter.lifts.append(a)
+
+    if "attempts" in data:
+        i = 0
+        for attempt in data['attempts']:
+            a = lifter.lifts[i]
+            a.attempt=attempt['attempt']
+            a.weight=attempt['weight']
+            a.result=attempt['result']
+            i = i + 1
     return lifter
 
 
