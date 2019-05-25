@@ -342,7 +342,10 @@ def teams_forecast(competition_id):
 
             max_snatch_forecast = db.session.query(func.max(Attempt.weight)).filter(Attempt.lifter_id == lifter.id).filter(Attempt.attempt < 4).filter((Attempt.result == 0) | (Attempt.result == 2)).first()[0]
             max_cj_forecast = db.session.query(func.max(Attempt.weight)).filter(Attempt.lifter_id == lifter.id).filter(Attempt.attempt > 3).filter((Attempt.result == 0) | (Attempt.result == 2)).first()[0]
-
+            if max_snatch_forecast == None:
+                max_snatch_forecast = 0
+            if max_cj_forecast == None:
+                max_cj_forecast = 0
             team_total_forecast = team_total_forecast + (max_snatch_forecast+max_cj_forecast)*lifter.sinclair_factor
             team_snatch_forecast= team_snatch_forecast + max_snatch_forecast*lifter.sinclair_factor
             team_cj_forecast = team_cj_forecast + max_cj_forecast*lifter.sinclair_factor
