@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 6aada63fe993
+Revision ID: dd68878fe37c
 Revises: 
-Create Date: 2019-04-28 12:22:58.881609
+Create Date: 2019-06-08 22:40:23.724445
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '6aada63fe993'
+revision = 'dd68878fe37c'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -52,6 +52,15 @@ def upgrade():
     sa.Column('max_weight', sa.Float(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('association',
+    sa.Column('left_id', sa.Integer(), nullable=False),
+    sa.Column('right_id', sa.Integer(), nullable=False),
+    sa.Column('snatch_points', sa.Integer(), nullable=True),
+    sa.Column('cj_points', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['left_id'], ['competitions.id'], ),
+    sa.ForeignKeyConstraint(['right_id'], ['teams.id'], ),
+    sa.PrimaryKeyConstraint('left_id', 'right_id')
+    )
     op.create_table('lifters',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('lifter_id', sa.String(), nullable=True),
@@ -90,6 +99,7 @@ def downgrade():
     op.drop_table('current')
     op.drop_table('attempts')
     op.drop_table('lifters')
+    op.drop_table('association')
     op.drop_table('weightclass')
     op.drop_table('teams')
     op.drop_table('liftermaster')

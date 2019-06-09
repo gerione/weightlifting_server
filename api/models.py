@@ -15,6 +15,15 @@ class Current(db.Model):
     lifter = db.relationship("Lifter", backref="current")
     test = db.Column(db.Integer, default=0)
 
+
+class Association(db.Model):
+    __tablename__ = 'association'
+    left_id = db.Column(db.Integer, db.ForeignKey('competitions.id'), primary_key=True)
+    right_id = db.Column(db.Integer, db.ForeignKey('teams.id'), primary_key=True)
+    snatch_points = db.Column(db.Integer, default=0)
+    cj_points = db.Column(db.Integer, default=0)
+    team = db.relationship("Team")
+
 class Competitions (db.Model):
     __tablename__ = 'competitions'
 
@@ -24,6 +33,8 @@ class Competitions (db.Model):
     start_time = db.Column(db.DateTime)
     youtube_id = db.Column(db.String)
     type = db.Column(db.String)
+
+    teams = db.relationship ('Association')
 
     def to_dict(self):
         return dict(id=self.id,
