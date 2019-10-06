@@ -2,10 +2,9 @@
 appserver.py
 - creates an application instance and runs the dev server
 """
-from api import create_app, database
+from api import create_app, database, socketio
+
 from api.models import Team, Lifter, Weightclass, Attempt, Competitions
-
-
 
 app = create_app()
 
@@ -19,5 +18,9 @@ def make_shell_context():
                 Weightclass=Weightclass,
                 Attempt=Attempt)
 
+
 if __name__ == '__main__':
+    """
     app.run(host='0.0.0.0')
+    """
+    socketio.run(app, port=5000,host='0.0.0.0')

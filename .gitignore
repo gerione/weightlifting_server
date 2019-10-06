@@ -1,3 +1,7 @@
 **/build
 **/.idea
 **/__pycache__
+/venv/
+/venvold/
+/static/
+/migrations2/

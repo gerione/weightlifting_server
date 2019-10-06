@@ -4,17 +4,21 @@ clients.py
   REST requests and responses
 """
 
-from flask import Blueprint, jsonify, request
-from flask_cors import cross_origin
+from flask import Blueprint, jsonify, request, session
+from flask_cors import CORS
+
 
 from .models import db, Lifter, Team, Weightclass, Attempt, Current, Competitions, LifterMaster, Association
 from sqlalchemy import func
 import sqlalchemy
 import datetime
 from sqlalchemy.sql.expression import cast
+from flask_socketio import join_room, leave_room, send, emit
+from api import socketio
 
 api = Blueprint('api', __name__)
 
+CORS(api)
 
 def find_or_create_lifter(data, id, competition_id):
     lifter_master = LifterMaster.query.filter_by(id =cast(id, sqlalchemy.String)).first()
@@ -163,9 +167,10 @@ def competitions():
 
 
 @api.route('/competitions/<int:id>/', methods=('GET', 'PUT', 'DELETE', 'OPTIONS'))
-@cross_origin()
 def competition(id):
-    if request.method == 'DELETE':
+    if request.method == 'OPTIONS':
+        return jsonify({'none': 1}),201
+    elif request.method == 'DELETE':
         lifters = Lifter.query.filter_by(competition_id = id)
         for l in lifters:
             db.session.delete(l)
@@ -429,4 +434,30 @@ def weightclasses():
         return jsonify(weightclass.to_dict()), 201
 
 
+@socketio.on('connect')
+def test_connect():
+    emit('my response', {'data': 'Connected'})
+
+@socketio.on('disconnect')
+def test_disconnect():
+    print('Client disconnected')
+
+@socketio.on('join')
+def on_join(data):
+    id = data['id']
+    session['room'] = id
+    join_room(id)
+
+
+@socketio.on('timer')
+def on_test(data):
+    room = session.get('room')
+    emit('messageChannel', data, room=room)
+
+@socketio.on('leave')
+def on_leave(data):
+    username = data['username']
+    room = data['room']
+    leave_room(room)
+    send(username + ' has left the room.', room=room)
 
