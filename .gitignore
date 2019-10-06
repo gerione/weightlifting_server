@@ -1,6 +1,7 @@
 **/build
 **/.idea
 **/__pycache__
-<<<<<<< HEAD
-venv
-static
+/venv/
+/venvold/
+/static/
+/migrations2/
