@@ -4,7 +4,6 @@ application.py
 """
 
 from flask import Flask
-from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
@@ -21,7 +20,6 @@ def create_app(app_name='AUSTRIAN_WEIGHTLIFTING_OVERLAY_API'):
 
     database.init_app(app)
     migrate.init_app(app, database)
-    CORS(app)
 
     from api.api import api
     app.register_blueprint(api, url_prefix="/api")
