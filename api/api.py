@@ -319,9 +319,27 @@ def get_current(competition_id):
 
     current = Current.query.filter(Current.lifter.has(competition_id=competition_id)).first()
     if current is None:
-        return jsonify(error="Current not existing!"), 404
+       return jsonify(
+                {
+                    "errors": [
+                        {
+                            "status": 404,
+                            "detail": "Competition with ID" + str(competition_id) + " not existing or no current lifter."
+                        }
+                    ]
+                }
+            ), 404
     elif current.lifter_id is None:
-        return jsonify(error="Current not existing!"), 404
+        return jsonify(
+                {
+                    "errors": [
+                        {
+                            "status": 404,
+                            "detail": "Competition with ID" + str(competition_id) + " not existing or no current lifter."
+                        }
+                    ]
+                }
+            ), 404
     else:
         return jsonify(current.lifter.to_dict()), 200
 
