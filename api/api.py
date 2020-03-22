@@ -176,12 +176,18 @@ def competition(id):
             db.session.delete(l)
         db.session.commit()
         competition = Competitions.query.get(id)
-        db.session.delete(competition)
-        db.session.commit()
-        return jsonify({'deleted': id}), 201
+        if competition is None:
+            return jsonify({'competition': {"status":"not existing", "ID":id}, 404)
+        else: 
+            db.session.delete(competition)
+            db.session.commit()
+            return jsonify({'deleted': id}), 201
     elif request.method == 'GET':
         competition = Competitions.query.get(id)
-        return jsonify({'competition': competition.to_dict()})
+        if competition is None:
+            return jsonify({'competition': {"status":"not existing", "ID":id}, 404)
+        else: 
+            return jsonify({'competition': competition.to_dict()})
 
     elif request.method == 'PUT':
         data = request.get_json()
@@ -295,12 +301,12 @@ def lifters_update(competition_id,lifter_id):
                 {
                     "errors": [
                         {
-                            "status": 401,
+                            "status": 404,
                             "detail": "Master data of user with ID " + str(lifter_id) + " does not exist"
                         }
                     ]
                 }
-            ), 401
+            ), 404
         lifter.competition_id = competition_id
         db.session.add(lifter)
         db.session.commit()
@@ -313,9 +319,9 @@ def get_current(competition_id):
 
     current = Current.query.filter(Current.lifter.has(competition_id=competition_id)).first()
     if current is None:
-        return jsonify(error="Current not existing!"), 401
+        return jsonify(error="Current not existing!"), 404
     elif current.lifter_id is None:
-        return jsonify(error="Current not existing!"), 401
+        return jsonify(error="Current not existing!"), 404
     else:
         return jsonify(current.lifter.to_dict()), 200
 
