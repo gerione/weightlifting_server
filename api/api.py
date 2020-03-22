@@ -177,7 +177,16 @@ def competition(id):
         db.session.commit()
         competition = Competitions.query.get(id)
         if competition is None:
-            return jsonify({'competition': {"status":"not existing", "ID":id}, 404)
+            return jsonify(
+                {
+                    "errors": [
+                        {
+                            "status": 404,
+                            "detail": "Competition with ID" + str(id) + " not existing."
+                        }
+                    ]
+                }
+            ), 404
         else: 
             db.session.delete(competition)
             db.session.commit()
@@ -185,7 +194,16 @@ def competition(id):
     elif request.method == 'GET':
         competition = Competitions.query.get(id)
         if competition is None:
-            return jsonify({'competition': {"status":"not existing", "ID":id}, 404)
+             return jsonify(
+                {
+                    "errors": [
+                        {
+                            "status": 404,
+                            "detail": "Competition with ID" + str(id) + " not existing."
+                        }
+                    ]
+                }
+            ), 404
         else: 
             return jsonify({'competition': competition.to_dict()})
 
