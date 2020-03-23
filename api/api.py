@@ -222,13 +222,17 @@ def competition(id):
             youtube_url = data['youtube_url']
         else:
             youtube_url = ""
+        if 'external_timer' in data:
+            external_timer = data['external_timer']
+        else:
+            external_timer = True
         competition = Competitions.query.get(id)
         competition.name=data['name']
         competition.location=data['location']
         competition.start_time=datetime.datetime.strptime(data['start_time'], '%Y-%m-%d %H:%M:%S')
         competition.youtube_id=youtube_url
         competition.type=type
-
+        competition.external_timer = external_timer
         db.session.commit()
         return jsonify(competition.to_dict()), 201
 
