@@ -33,6 +33,7 @@ class Competitions (db.Model):
     start_time = db.Column(db.DateTime)
     youtube_id = db.Column(db.String)
     type = db.Column(db.String)
+    external_timer = db.Column(db.Boolean, server_default='t')
 
     teams = db.relationship ('Association')
 
@@ -42,7 +43,8 @@ class Competitions (db.Model):
                     location=self.location,
                     youtube_id=self.youtube_id,
                     start_time=str(self.start_time),
-                    type=self.type)
+                    type=self.type,
+                    external_timer=self.external_timer)
 
 
 class LifterMaster (db.Model):

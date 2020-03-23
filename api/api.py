@@ -159,8 +159,13 @@ def competitions():
         else:
             youtube_url = ""
 
+        if 'external_timer' in data:
+            external_timer = data['external_timer']
+        else:
+            external_timer = True
+
         competition = Competitions(name=data['name'], location=data['location'],
-                                   start_time=datetime.datetime.strptime(data['start_time'], '%Y-%m-%dT%H:%M'), youtube_id=youtube_url, type=type)
+                                   start_time=datetime.datetime.strptime(data['start_time'], '%Y-%m-%dT%H:%M'), youtube_id=youtube_url, type=type, external_timer=external_timer)
         db.session.add(competition)
         db.session.commit()
         return jsonify(competition.to_dict()), 201
