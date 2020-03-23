@@ -225,7 +225,7 @@ def competition(id):
         competition = Competitions.query.get(id)
         competition.name=data['name']
         competition.location=data['location']
-        competition.start_time=datetime.datetime.strptime(data['start_time'], '%Y-%m-%dT%H:%M:%S')
+        competition.start_time=datetime.datetime.strptime(data['start_time'], '%Y-%m-%d %H:%M:%S')
         competition.youtube_id=youtube_url
         competition.type=type
 
