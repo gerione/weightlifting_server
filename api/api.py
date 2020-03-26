@@ -495,20 +495,24 @@ def test_disconnect():
 
 @socketio.on('join')
 def on_join(data):
-    id = data['id']
-    session['room'] = id
+    id = data['competitionid']
+    session['competitionid'] = id
     join_room(id)
 
 
 @socketio.on('timer')
-def on_test(data):
-    room = session.get('room')
-    emit('messageChannel', data, room=room)
+def on_timer(data):
+    room = session.get('competitionid')
+    emit('timerMessage', data, room=room)
+
+
+@socketio.on('referee')
+def on_referee(data):
+    room = session.get('competitionid')
+    emit('refereeMessage', data, room=room)
 
 @socketio.on('leave')
 def on_leave(data):
-    username = data['username']
-    room = data['room']
+    room = data['competitionid']
     leave_room(room)
-    send(username + ' has left the room.', room=room)
 
