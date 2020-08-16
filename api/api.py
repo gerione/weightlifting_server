@@ -30,6 +30,7 @@ def find_or_create_lifter(data, id, competition_id):
     lifter = Lifter.query.filter_by(lifter_id=cast(id, sqlalchemy.String), competition_id=competition_id).first()
     if lifter is None:
         lifter = Lifter(lifter_id = cast(lifter_master.id, sqlalchemy.String), weight=data['weight'])
+        db.session.commit()
 
     if 'team' in data:
         t = data['team']
@@ -39,6 +40,8 @@ def find_or_create_lifter(data, id, competition_id):
             team = Team.query.filter_by(name='default').first()
             if team is None:
                 team = Team(name="default", short="")
+        db.session.commit()
+
     else:
         team = Team.query.filter_by(name='default').first()
         if team is None:
@@ -77,6 +80,7 @@ def find_or_create_lifter(data, id, competition_id):
             a.weight=attempt['weight']
             a.result=attempt['result']
             i = i + 1
+    db.session.commit()
     return lifter
 
 
@@ -95,6 +99,7 @@ def lifter(id):
                     ]
                 }
             ), 401
+        db.session.commit()
         return jsonify({'lifter': lifter.to_dict()})
 
     elif request.method == 'PUT':
@@ -210,6 +215,7 @@ def competition(id):
                 }
             ), 404
         else: 
+            db.session.commit()
             return jsonify({'competition': competition.to_dict()})
 
     elif request.method == 'PUT':
@@ -283,7 +289,7 @@ def lifters(competition_id):
             lifterdata.update({'cj_points': max_cj * lifter.sinclair_factor})
             lifterdata.update({'total_points': (max_snatch+max_cj) * lifter.sinclair_factor})
             result.append(lifterdata)
-
+        db.session.commit()
         return jsonify(result), 201
     elif request.method == 'POST':
         competition = Competitions.query.get(competition_id)
@@ -368,6 +374,7 @@ def get_current(competition_id):
                 }
             ), 404
     else:
+        db.session.commit()
         return jsonify(current.lifter.to_dict()), 200
 
 
@@ -438,7 +445,7 @@ def teams_forecast(competition_id):
 
     for team in team_results:
         result.append(team_results[team])
-
+    db.session.commit()
     return jsonify(result)
 
 
