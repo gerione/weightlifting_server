@@ -15,13 +15,14 @@ import datetime
 from sqlalchemy.sql.expression import cast
 from flask_socketio import join_room, leave_room, send, emit
 from api import socketio
+from werkzeug.exceptions import InternalServerError
 
 api = Blueprint('api', __name__)
 
 CORS(api)
 
 
-@api.errorhandler(500)
+@api.errorhandler(InternalServerError)
 def internal_error(error):
     db.session.rollback()
     error = dict()
