@@ -29,7 +29,7 @@ def internal_error(error):
     error["code"] = 500
     error["description"] = "Internal server error"
     
-    return jsonify(error), 500
+    return jsonify(error), 505
 
 
 def find_or_create_lifter(data, id, competition_id):
