@@ -20,6 +20,17 @@ api = Blueprint('api', __name__)
 
 CORS(api)
 
+
+@api.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    error = dict()
+    error["code"] = 500
+    error["description"] = "Internal server error"
+    
+    return jsonify(error), 500
+
+
 def find_or_create_lifter(data, id, competition_id):
     lifter_master = LifterMaster.query.filter_by(id =cast(id, sqlalchemy.String)).first()
     if lifter_master is None:
@@ -397,7 +408,9 @@ def set_current(competition_id, id):
 
 @api.route('/competitions/<int:competition_id>/teams/', methods=['GET'])
 def teams_forecast(competition_id):
+    
     competition = Competitions.query.get(competition_id)
+    
     teams = Team.query.join(Lifter).filter_by(competition_id=competition_id).all()
 
 
@@ -446,7 +459,7 @@ def teams_forecast(competition_id):
     for team in team_results:
         result.append(team_results[team])
     db.session.commit()
-    return jsonify(result)
+    return jsonify(result), 200
 
 
 
