@@ -4,7 +4,7 @@ clients.py
   REST requests and responses
 """
 
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request, session, Response
 from flask_cors import CORS
 
 
@@ -99,6 +99,9 @@ def find_or_create_lifter(data, id, competition_id):
 @api.route('/lifters/<int:id>/', methods=('GET', 'PUT'))
 def lifter(id):
     if request.method == 'GET':
+        currver = "1.0"
+        if request.if_none_match and currver in request.if_none_match:
+            return Response(status=304)
         lifter = LifterMaster.query.get(id)
         if lifter == None:
             return jsonify(
@@ -111,8 +114,7 @@ def lifter(id):
                     ]
                 }
             ), 401
-        db.session.commit()
-        return jsonify({'lifter': lifter.to_dict()})
+        return Response(jsonify({'lifter': lifter.to_dict()}), headers={"etag": currver})
 
     elif request.method == 'PUT':
 
@@ -228,7 +230,7 @@ def competition(id):
             ), 404
         else: 
             db.session.commit()
-            return jsonify({'competition': competition.to_dict()})
+            return jsonify(competition.to_dict())
 
     elif request.method == 'PUT':
         data = request.get_json()
@@ -537,3 +539,7 @@ def on_leave(data):
     room = data['competitionid']
     leave_room(room)
 
+
+@api.route("/health")
+def health():
+    return {"status": "healthy"}, 200
