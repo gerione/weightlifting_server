@@ -1,2 +1,2 @@
 [start]
-cmd = "flask db upgrade; gunicorn -w 2 -b 0.0.0.0:3000 appserver:app"
+cmd = "gunicorn -w 2 -b 0.0.0.0:3000 appserver:app"
